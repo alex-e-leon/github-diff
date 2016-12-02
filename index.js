@@ -1,6 +1,6 @@
 var githubApi = require('github');
 
-module.exports = function getDiff(repo, base, head) {
+module.exports = function getDiff(githubRepo, base, head) {
   return new Promise((resolve, reject) => {
     try {
       // Setup the github api
@@ -16,26 +16,25 @@ module.exports = function getDiff(repo, base, head) {
       
       // Try get a personal access token from the environment
       var token = process.env.GITHUB_DIFF_TOKEN;
-      if (!token) {
-        throw new Error('Unable to find GITHUB_DIFF_TOKEN in your ENV - ensure you have created a personal github token and added it as an environment variable');
+      var [owner, repo] = githubRepo.split('/');
+      if (token) {
+        // Authenticate to github
+        github.authenticate({
+          type: 'token',
+          token: token,
+        }, function(err, res) {
+          if (err) {
+            throw new Error('Unable to authenticate to github with the access token provided in GITHUB_DIFF_TOKEN');
+          }
+        });
       }
-
-      // Authenticate to github
-      github.authenticate({
-        type: 'token',
-        token: token,
-      }, function(err, res) {
-        if (err) {
-          throw new Error('Unable to authenticate to github with the access token provided in GITHUB_DIFF_TOKEN');
-        }
-      });
 
       // Connect and receive the list of patches
       github.repos.compareCommits({
-        owner: 'domain-group',
-        repo: repo,
-        base: base,
-        head: head,
+        owner,
+        repo,
+        base,
+        head,
       }, function(err, res) {
         if (err) {
           throw new Error(`Unable to access the github repository for ${repo}. ${err}`);
