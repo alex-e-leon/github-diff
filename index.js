@@ -1,5 +1,9 @@
 const githubApi = require('github');
 
+function atob(base64encoded) {
+  return (new Buffer(base64encoded, 'base64')).toString('utf8')
+}
+
 function authenticate(github, token) {
   // github api is restful and stateless,
   // so authenticate is a sync function that just modifies the rest calls
@@ -36,11 +40,11 @@ function buildContent(github, owner, repo, base, head, file) {
   switch (file.status) {
     case 'removed':
       return getContent(github, owner, repo, file.filename, base).then(file => {
-        return {filename, patch, status, header, fileA: file};
+        return {filename, patch, status, header, fileA: atob(file)};
       });
     case 'added':
       return getContent(github, owner, repo, file.filename, head).then(file => {
-        return {filename, patch, status, header, fileB: file};
+        return {filename, patch, status, header, fileB: atob(file)};
       });
     case 'modified':
       return Promise.all([
@@ -48,7 +52,7 @@ function buildContent(github, owner, repo, base, head, file) {
           getContent(github, owner, repo, file.filename, head),
       ]).then(files => {
         const [fileA, fileB] = files;
-        return {filename, patch, status, header, fileA, fileB};
+        return {filename, patch, status, header, fileA: atob(fileA), fileB: atob(fileB)};
       });
     default:
       return new Promise(resolve => {
