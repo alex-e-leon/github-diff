@@ -27,33 +27,47 @@ function compareCommits(github, owner, repo, base, head) {
   });
 }
 
-function buildContent(github, owner, repo, base, head, file) {
+function buildHeader(fileA, fileB) {
   // Build a limited but approximately valid git diff header
   // May not work for all variations of `git apply`
-  const header = `diff --git a/${file.filename} b/${file.filename}\n` +
-    `--- a/${file.filename}\n` +
-    `+++ b/${file.filename}\n`;
+  return `diff --git a/${fileA} b/${fileB}\n` +
+    `--- a/${fileA}\n` +
+    `+++ b/${fileB}\n`;
+}
 
+function buildContent(github, owner, repo, base, head, file) {
   const {filename, patch, status} = file;
 
   // Get the content for the files
-  switch (file.status) {
+  switch (status) {
     case 'removed':
-      return getContent(github, owner, repo, file.filename, base).then(file => {
-        return {filename, patch, status, header, fileA: atob(file)};
+      return getContent(github, owner, repo, filename, base).then(content => {
+        return {filename, patch, status, header: buildHeader(filename, filename), fileA: atob(content)};
       });
+
     case 'added':
-      return getContent(github, owner, repo, file.filename, head).then(file => {
-        return {filename, patch, status, header, fileB: atob(file)};
+      return getContent(github, owner, repo, filename, head).then(content => {
+        return {filename, patch, status, header: buildHeader(filename, filename), fileB: atob(content)};
       });
+
     case 'modified':
       return Promise.all([
-          getContent(github, owner, repo, file.filename, base),
-          getContent(github, owner, repo, file.filename, head),
+          getContent(github, owner, repo, filename, base),
+          getContent(github, owner, repo, filename, head),
       ]).then(files => {
         const [fileA, fileB] = files;
-        return {filename, patch, status, header, fileA: atob(fileA), fileB: atob(fileB)};
+        return {filename, patch, status, header: buildHeader(filename, filename), fileA: atob(fileA), fileB: atob(fileB)};
       });
+
+    case 'renamed':
+      return getContent(github, owner, repo, filename, head).then(content => {
+        const decodedFile = atob(content);
+        const previousFilename = file.previous_filename;
+        const header = buildHeader(filename, previousFilename);
+
+        return {filename, patch, status, header, previousFilename, filaA: decodedFile, fileB: decodedFile};
+      });
+
     default:
       return new Promise(resolve => {
         resolve({filename, patch, status, header});
