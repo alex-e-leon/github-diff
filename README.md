@@ -26,8 +26,15 @@ github-diff takes the following arguments
 github-diff returns a promise that returns the following structure:
 
 ```javascript
-[{ filename: file, patch: patch }, ...]
+[{ filename, patch, header, status, fileA, fileB}, ...]
 ```
+
+- filename: The full path of the file from the base of the repo, ex: `/src/my-file.js`
+- patch: The patch provided by github for the file. Looks like a regular git formatted patch without the header
+- header: A basic git patch style header. Currently doesn't include commit hashes, but should validate when used with `git apply`
+- status: The diff status for the file. Returns one of `modified`, `renamed`, `deleted`, `added`, etc. See [git docs](https://git-scm.com/docs/git-status) for all options
+- fileA: The contents of the base file (if it exists in base)
+- fileB: The contents of the head file (if it exists in head)
 
 ### Node example
 
