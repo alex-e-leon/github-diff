@@ -65,7 +65,7 @@ function buildContent(github, owner, repo, base, head, file) {
         const previousFilename = file.previous_filename;
         const header = buildHeader(filename, previousFilename);
 
-        return {filename, patch, status, header, previousFilename, filaA: decodedFile, fileB: decodedFile};
+        return {filename, patch, status, header, previousFilename, fileA: decodedFile, fileB: decodedFile};
       });
 
     default:
