@@ -1,14 +1,22 @@
 {
   "name": "github-diff",
   "version": "1.2.1",
-  "description": "",
+  "description": "A small utility for getting diffs from github projects",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "Alex Leon <alexleon@domain.com.au>",
+  "author": "Alex Leon <alex@leon.st>",
   "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/alex-e-leon/github-diff/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/alex-e-leon/github-diff.git"
+  },
+  "homepage": "https://github.com/alex-e-leon/github-diff#readme",
   "dependencies": {
     "github": "^6.1.0"
-  }
+  },
+  "keywords": [
+    "github-diff"
+  ]
 }
