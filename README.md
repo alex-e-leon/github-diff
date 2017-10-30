@@ -40,8 +40,8 @@ github-diff returns a promise that returns the following structure:
 ### Node example
 
 ```javascript
-import 'github-diff';
-github-diff('alex-e-leon/github-diff', 'v1.0.0', 'v.1.0.1').then((patches) => {
+import githubDiff from 'github-diff';
+githubDiff('alex-e-leon/github-diff', 'v1.0.0', 'v.1.0.1').then((patches) => {
   console.log(patches);
 });
 ```
