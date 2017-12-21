@@ -38,31 +38,31 @@ function buildHeader(fileA, fileB) {
 }
 
 function buildContent(github, owner, repo, base, head, file) {
-  const {filename, patch, status, sha} = file;
+  const {filename, patch, status} = file;
 
   // Get the content for the files
   switch (status) {
     case 'removed':
-      return getContent(github, owner, repo, filename, base, sha).then(content => {
+      return getContent(github, owner, repo, filename, base).then(content => {
         return {filename, patch, status, header: buildHeader(filename, filename), fileA: atob(content)};
       });
 
     case 'added':
-      return getContent(github, owner, repo, filename, head, sha).then(content => {
+      return getContent(github, owner, repo, filename, head).then(content => {
         return {filename, patch, status, header: buildHeader(filename, filename), fileB: atob(content)};
       });
 
     case 'modified':
       return Promise.all([
-          getContent(github, owner, repo, filename, base, sha),
-          getContent(github, owner, repo, filename, head, sha),
+          getContent(github, owner, repo, filename, base),
+          getContent(github, owner, repo, filename, head),
       ]).then(files => {
         const [fileA, fileB] = files;
         return {filename, patch, status, header: buildHeader(filename, filename), fileA: atob(fileA), fileB: atob(fileB)};
       });
 
     case 'renamed':
-      return getContent(github, owner, repo, filename, head, sha).then(content => {
+      return getContent(github, owner, repo, filename, head).then(content => {
         const decodedFile = atob(content);
         const previousFilename = file.previous_filename;
         const header = buildHeader(filename, previousFilename);
@@ -77,7 +77,7 @@ function buildContent(github, owner, repo, base, head, file) {
   }
 }
 
-function getContent(github, owner, repo, path, commit, sha) {
+function getContent(github, owner, repo, path, commit) {
   return github.repos.getContent({
     owner,
     repo,
@@ -89,11 +89,18 @@ function getContent(github, owner, repo, path, commit, sha) {
     try {
       const apiError = JSON.parse(err);
       if (apiError.errors.find(error => error.code === 'too_large')) {
-        return github.gitdata.getBlob({
+        return github.repos.getCommit({
+          owner,
+          repo,
+          sha: commit
+        })
+        .then(commit => commit.files.find(file => file.filename === path).sha)
+        .then(sha => github.gitdata.getBlob({
           owner,
           repo,
           sha
-        }).then(data => data.content);
+        }))
+        .then(data => data.content);
       }
     } catch(parseError) {}
     return Promise.reject(err);
