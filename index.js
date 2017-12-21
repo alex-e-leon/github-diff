@@ -1,7 +1,9 @@
 const githubApi = require('github');
+const isBinary = require('is-binary-buffer');
 
 function atob(base64encoded) {
-  return (new Buffer(base64encoded, 'base64')).toString('utf8')
+  const decodedFile = (new Buffer(base64encoded, 'base64'));
+  return isBinary(decodedFile) ? decodedFile : decodedFile.toString('utf8');
 }
 
 function authenticate(github, token) {
@@ -83,6 +85,25 @@ function getContent(github, owner, repo, path, commit) {
     ref: commit,
   }).then((res) => {
     return res.content;
+  }).catch((err) => {
+    try {
+      const apiError = JSON.parse(err);
+      if (apiError.errors.find(error => error.code === 'too_large')) {
+        return github.repos.getCommit({
+          owner,
+          repo,
+          sha: commit
+        })
+        .then(commit => commit.files.find(file => file.filename === path).sha)
+        .then(sha => github.gitdata.getBlob({
+          owner,
+          repo,
+          sha
+        }))
+        .then(data => data.content);
+      }
+    } catch(parseError) {}
+    return Promise.reject(err);
   }).catch((err) => {
     throw new Error(`Unable to get content for ${path} @commit:${commit}. ${err}`);
   });
