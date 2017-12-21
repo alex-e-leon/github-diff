@@ -14,7 +14,8 @@
   },
   "homepage": "https://github.com/alex-e-leon/github-diff#readme",
   "dependencies": {
-    "github": "^6.1.0"
+    "github": "^6.1.0",
+    "is-binary-buffer": "^1.0.0"
   },
   "keywords": [
     "github-diff"

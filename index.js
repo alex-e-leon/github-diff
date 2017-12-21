@@ -1,7 +1,9 @@
 const githubApi = require('github');
+const isBinary = require('is-binary-buffer');
 
 function atob(base64encoded) {
-  return (new Buffer(base64encoded, 'base64')).toString('utf8')
+  const decodedFile = (new Buffer(base64encoded, 'base64'));
+  return isBinary(decodedFile) ? decodedFile : decodedFile.toString('utf8');
 }
 
 function authenticate(github, token) {
