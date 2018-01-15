@@ -89,12 +89,12 @@ function getContent(github, owner, repo, path, commit) {
     try {
       const apiError = JSON.parse(err);
       if (apiError.errors.find(error => error.code === 'too_large')) {
-        return github.repos.getCommit({
+        return github.gitdata.getTree({
           owner,
           repo,
           sha: commit
         })
-        .then(commit => commit.files.find(file => file.filename === path).sha)
+        .then(commit => commit.tree.find(file => file.path === path).sha)
         .then(sha => github.gitdata.getBlob({
           owner,
           repo,
