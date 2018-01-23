@@ -92,6 +92,7 @@ function getContent(github, owner, repo, path, commit) {
         return github.gitdata.getTree({
           owner,
           repo,
+          recursive: true,
           sha: commit
         })
         .then(commit => commit.tree.find(file => file.path === path).sha)
