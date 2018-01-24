@@ -92,6 +92,10 @@ function getContent(github, owner, repo, path, commit) {
         return github.gitdata.getTree({
           owner,
           repo,
+          // May hit githubs maximum limit if the tree is too large
+          // we could handle larger trees if we recursively fetched subtrees.
+          // see https://developer.github.com/v3/git/trees/#get-a-tree-recursively
+          recursive: true,
           sha: commit
         })
         .then(commit => commit.tree.find(file => file.path === path).sha)
