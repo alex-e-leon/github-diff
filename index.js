@@ -61,7 +61,11 @@ function buildContent(github, owner, repo, base, head, file) {
       ]).then(files => {
         const [fileA, fileB] = files;
         const header = buildHeader(previousFilename, filename);
-        return {previousFilename, filename, patch, status, header, fileA: atob(fileA), fileB: atob(fileB)};
+        const result = {filename, patch, status, header, fileA: atob(fileA), fileB: atob(fileB)};
+        if (status === 'renamed') {
+          result.previousFilename = previousFilename;
+        }
+        return result;
       });
 
     default:
