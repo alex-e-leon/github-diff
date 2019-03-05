@@ -53,21 +53,15 @@ function buildContent(github, owner, repo, base, head, file) {
       });
 
     case 'modified':
+    case 'renamed':
+      const previousFilename = status === 'renamed' ? file.previous_filename : filename;
       return Promise.all([
-          getContent(github, owner, repo, filename, base),
-          getContent(github, owner, repo, filename, head),
+        getContent(github, owner, repo, previousFilename, base),
+        getContent(github, owner, repo, filename, head),
       ]).then(files => {
         const [fileA, fileB] = files;
-        return {filename, patch, status, header: buildHeader(filename, filename), fileA: atob(fileA), fileB: atob(fileB)};
-      });
-
-    case 'renamed':
-      return getContent(github, owner, repo, filename, head).then(content => {
-        const decodedFile = atob(content);
-        const previousFilename = file.previous_filename;
-        const header = buildHeader(filename, previousFilename);
-
-        return {filename, patch, status, header, previousFilename, fileA: decodedFile, fileB: decodedFile};
+        const header = buildHeader(previousFilename, filename);
+        return {previousFilename, filename, patch, status, header, fileA: atob(fileA), fileB: atob(fileB)};
       });
 
     default:
@@ -131,7 +125,7 @@ module.exports = function getDiff(githubRepo, base, head) {
       const token = process.env.GITHUB_DIFF_TOKEN;
       const [owner, repo] = githubRepo.split('/');
 
-      // Check if the user has set a token and then authenticate 
+      // Check if the user has set a token and then authenticate
       if (token) {
         authenticate(github, token);
       }
